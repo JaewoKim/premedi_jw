@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PreMedi N.CER - Full Spectrum CDSS (Korean)</title>
+    <style>
+        :root { --primary: #4f46e5; --crt: #ef4444; --warn: #f59e0b; --bg: #f3f4f6; }
+        body { font-family: 'Pretendard', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: #1f2937; }
+        
+        /* Layout */
+        .sidebar { width: 380px; background: white; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; }
+        .main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Header */
+        .header { padding: 20px; border-bottom: 1px solid #e5e7eb; background: white; }
+        .title { font-size: 18px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .badge { background: #1f2937; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+
+        /* Filter Tabs */
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+        .tab { padding: 6px 10px; font-size: 11px; border: 1px solid #d1d5db; border-radius: 15px; background: white; cursor: pointer; color: #6b7280; transition: 0.2s; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
+
+        /* List */
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .item { padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; background: white; cursor: pointer; transition: 0.1s; }
+        .item:hover { border-color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .item.selected { border: 2px solid var(--primary); background: #eef2ff; }
+        .item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .item-title { font-size: 13px; font-weight: 700; }
+        .item-sub { font-size: 11px; color: #6b7280; }
+        .tag { font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 700; text-transform: uppercase; }
+        .tag.crt { background: #fee2e2; color: #991b1b; }
+        .tag.warn { background: #fef3c7; color: #92400e; }
+        .tag.info { background: #e0f2fe; color: #075985; }
+
+        /* Output Panels */
+        .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; min-height: 0; }
+        .panel { background: white; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .p-head { padding: 15px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 15px; }
+        .p-body { flex: 1; padding: 20px; overflow-y: auto; white-space: pre-wrap; line-height: 1.6; font-size: 13px; }
+        
+        .med { border-top: 4px solid #374151; }
+        .med .p-body { font-family: 'Pretendard', sans-serif; color: #374151; } /* 한글 폰트 적용 */
+        .pat { border-top: 4px solid #f59e0b; background: #fffbeb; }
+        .pat .p-body { color: #4b5563; font-size: 14px; }
+
+        .btn-copy { margin-top: auto; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; width: 150px; align-self: flex-end; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="header">
+        <div class="title">🏥 PreMedi N.CER <span class="badge">Korean Ver</span></div>
+        <div style="font-size:11px; color:#6b7280; margin-top:4px;">Stoelting Logic + User Sources [153-304]</div>
+    </div>
+    <div class="tabs" id="tabs">
+        </div>
+    <div class="list-container" id="list">
+        </div>
+</div>
+
+<div class="main">
+    <div class="panels">
+        <div class="panel med">
+            <div class="p-head">👨‍⚕️ Medical Record (EMR)</div>
+            <div id="outMed" class="p-body" style="color:#9ca3af; text-align:center; padding-top:100px;">항목을 선택하세요.</div>
+        </div>
+        <div class="panel pat">
+            <div class="p-head" style="color:#b45309;">📱 Patient Guide (App)</div>
+            <div id="outPat" class="p-body" style="color:#9ca3af; text-align:center; padding-top:100px;">환자 설명이 생성됩니다.</div>
+        </div>
+    </div>
+    <button class="btn-copy" onclick="copyResult()">📋 전체 복사</button>
+</div>
+
+<script>
+    // ============================================================
+    // INTEGRATED DATASET (Stoelting + Sources 153-304) - KOREAN VERSION
+    // ============================================================
+    const masterData = [
+        // --- General / History ---
+        { id: 'src_153', cat: 'special', lvl: 'crt', label: '아나필락시스 과거력', sub: 'Src 153', med: "Anaphylaxis 과거력.\n[Stoelting] IgE 매개성 vs 비IgE성 감별 필요. H1/H2 blocker 및 Steroid 전처치 고려. Histamine-releasing NMB 사용 회피.", pat: "과거 심한 알레르기 쇼크 병력이 있어, 예방 약물을 투여하고 알레르기 유발 가능성이 낮은 약제만 선별하여 사용합니다." },
+        { id: 'src_154', cat: 'respi', lvl: 'warn', label: 'COVID-19 감염력', sub: 'Src 154-155', med: "COVID-19 감염력.\n[Guideline] 확진 후 7주 이후 정규 수술 권장. 조기 수술 시 Post-op pulmonary cx 증가 위험 설명.", pat: "코로나 감염력 확인. 폐 기능 회복을 위해 확진 후 7주 이후 수술을 권장하며, 불가피한 경우 호흡기 합병증 관리를 철저히 합니다." },
+        { id: 'src_156', cat: 'special', lvl: 'info', label: '수술 계획/자세', sub: 'Src 156', med: "OP Level, Position, Line, IOM 필요성 확인.", pat: "수술 자세와 필요한 모니터링 장비를 확인했습니다." },
+        { id: 'src_157', cat: 'special', lvl: 'info', label: '출생력 (소아)', sub: 'Src 157 (<15y)', med: "Pediatric Hx: 미숙아/만삭아 여부, 출생 체중, 선천성 기형(Congenital anomalies) 확인.", pat: "출생 시 병력과 선천성 질환 여부를 확인하여 소아 마취 계획을 수립합니다." },
+        { id: 'src_158', cat: 'hepatic', lvl: 'warn', label: '짧은 수술 간격', sub: 'Src 158-160', med: "반복적인 마취(Repeated Anesthesia).\n[Stoelting] 약물 축적 및 간/신장 기능 회복 여부 확인. Halothane hepatitis 위험(과거력).", pat: "잦은 수술과 마취로 인한 간/신장 부담을 고려하여 약물 용량을 조절합니다." },
+        { id: 'src_161', cat: 'special', lvl: 'warn', label: '치아 손상 위험', sub: 'Src 161-162', med: "치아 흔들림/손상 위험.\n기존 손상 부위 기록(Document). Tooth protector 적용. 후두경 조작 시 주의.", pat: "흔들리는 치아가 있어 마취 중 치아 보호 장비를 착용하고 손상되지 않도록 각별히 주의합니다." },
+
+        // --- Cardiovascular (Old Age, HTN, Arrhythmia, IHD) ---
+        { id: 'src_163', cat: 'cardio', lvl: 'warn', label: '고령 (Old Age) - 심장', sub: 'Src 163, 165', med: "고령(Old Age) > 4METs.\n[Stoelting] 혈관/심장의 경직도 증가. 수용체 민감도 감소. 수술 전후 심혈관 합병증 고위험군.", pat: "고령으로 인한 심혈관 기능 저하 가능성이 있어 수술 중 심장 부담을 최소화하는 마취 방법을 선택합니다." },
+        { id: 'src_164', cat: 'respi', lvl: 'warn', label: '고령 (Old Age) - 폐', sub: 'Src 164', med: "고령 폐 기능 저하.\n[Stoelting] 폐 탄성 및 흉벽 유순도 감소. 무기폐(Atelectasis) 및 폐렴 위험 증가.", pat: "나이가 드시면 폐 탄력이 줄어들어 수술 후 폐렴 위험이 있습니다. 호흡 훈련과 가래 배출을 도와드립니다." },
+        { id: 'src_166', cat: 'cardio', lvl: 'warn', label: '고혈압 (HTN)', sub: 'Src 166-167', med: "고혈압 약물.\n[Stoelting] ACEi/ARB는 수술 24시간 전 중단(Vasoplegic syndrome 예방). Beta-blocker는 유지. BP < 140/90 유지 목표.", pat: "혈압약 중 일부(ARB/ACEi)는 마취 중 저혈압 위험이 있어 수술 전날부터 중단합니다. 나머지 약은 복용하세요." },
+        { id: 'src_168', cat: 'cardio', lvl: 'warn', label: '혈역학적 불안정', sub: 'Src 168-170', med: "Hemodynamic Instability Risk.\n[Stoelting] 빈맥(Tachycardia) 회피(O2 demand 증가). 정상 동율동(Sinus Rhythm) 유지. MI/HF 위험.", pat: "수술 중 혈압과 심박수가 흔들리지 않도록 정밀 감시하며 심장 부담을 줄이겠습니다." },
+        { id: 'src_171', cat: 'cardio', lvl: 'crt', label: '협심증/PCI (Angina)', sub: 'Src 171-174', med: "PCI/Stent 시술력.\n[Stoelting] DES < 1년: Stent Thrombosis 고위험. BMS < 30일: 수술 연기 원칙. 항혈소판제 중단(Bridging) 여부 순환기내과 협진 확인.", pat: "스텐트 시술 과거력이 있어 혈전 발생 위험이 큽니다. 심장내과와 협의 하에 가장 안전한 시기와 방법으로 수술합니다." },
+        { id: 'src_175', cat: 'cardio', lvl: 'crt', label: 'BMS 삽입 환자', sub: 'Src 175-176', med: "BMS 삽입 < 2개월.\n[Guideline] 비심장 수술 시 최소 30일 연기 필요.", pat: "금속 스텐트 시술 후 기간이 짧아 수술 연기가 원칙이나, 응급 시 혈전 위험을 감수하고 진행합니다." },
+
+        // --- Respiratory (Tb, Asthma) ---
+        { id: 'src_177', cat: 'respi', lvl: 'crt', label: '결핵 의심 (Tb)', sub: 'Src 177-181', med: "활동성 결핵(Active Tb) 감별.\n[Protocol] Sputum AFB x3 & PCR. 활동성 확인 시: 수술 연기(최소 2주 투약 후). 수술방 마지막 순서 배정.", pat: "활동성 결핵 여부를 확인해야 합니다. 전염력이 있다면 치료 후 수술하며, 감염 관리를 위해 격리 수술실을 사용합니다." },
+        { id: 'src_182', cat: 'respi', lvl: 'warn', label: '천식 (Asthma)', sub: 'Src 182-184', med: "기관지 천식.\n[Stoelting] Inhaler 지참. Deep extubation 또는 Fully awake 발관 고려. Histamine 유리 약제 회피. 필요시 Steroid 전처치.", pat: "천식 발작 예방을 위해 쓰시던 흡입기를 준비해 주세요. 마취 유도 시 기관지 수축을 막는 약제를 사용합니다." },
+
+        // --- Hepatic (LFT, LC) ---
+        { id: 'src_185', cat: 'hepatic', lvl: 'warn', label: '간수치 상승', sub: 'Src 185-187', med: "LFT 상승 / B형 간염 보균자.\n[Stoelting] 마취제 대사 영향 고려. 간혈류 감소 최소화 마취 유지.", pat: "간 수치가 높아 간에 부담이 적은 마취제를 선택하고 수술 후 간 기능을 추적 관찰합니다." },
+        { id: 'src_188', cat: 'hepatic', lvl: 'crt', label: '간경변 (LC)', sub: 'Src 188-191', med: "간경변(Liver Cirrhosis).\n[Stoelting] Child-Pugh 등급 확인. Coagulopathy(PT/PLT) 교정. 복수(Ascites) 확인. 식도정맥류(Varix) 시 NGT 삽입 금기.", pat: "간경화로 인한 지혈 장애와 복수 위험이 있습니다. 식도 정맥류 파열을 주의하며 수혈을 준비합니다." },
+
+        // --- Renal (UA, CKD, HD) ---
+        { id: 'src_192', cat: 'renal', lvl: 'warn', label: '소변검사 이상', sub: 'Src 192-195', med: "단백뇨/혈뇨(Proteinuria/Hematuria).\n기저 신장질환(Renal disease) 감별 필요. 수액 요법 주의.", pat: "소변 검사 이상 소견이 있어 신장 기능을 보호하는 수액 요법을 시행합니다." },
+        { id: 'src_196', cat: 'renal', lvl: 'crt', label: '투석 환자 (ESRD)', sub: 'Src 196-199', med: "혈액투석(HD) 환자.\n[Stoelting] 수술 24시간 전 투석. 수술 당일 K+ 및 Volume 확인. 동정맥루(AVF) 팔 보호. 위배출지연(RSI) 고려.", pat: "수술 전날 투석을 완료해야 합니다. 동정맥루가 있는 팔을 보호하고 칼륨 수치를 확인합니다." },
+        { id: 'src_200', cat: 'renal', lvl: 'crt', label: '고칼륨혈증 (HyperK)', sub: 'Src 200-203', med: "고칼륨혈증 (K > 5.0).\n[Stoelting] 치명적 부정맥 위험. Succinylcholine 금기. Tx: Insulin/Glucose, Calcium gluconate.", pat: "칼륨 수치가 높으면 심장에 치명적일 수 있어 응급 처치로 수치를 낮춘 후 수술합니다." },
+
+        // --- Endocrine (DM, Steroid, Adrenal, Thyroid) ---
+        { id: 'src_204', cat: 'endo', lvl: 'warn', label: '당뇨 (DM)', sub: 'Src 204-207', med: "당뇨(Diabetes Mellitus).\n[Stoelting] 목표 혈당 120-180. 경구약/인슐린 당일 아침 중단. 무통성 심근허혈(Silent MI) 주의. 위무력증(Gastroparesis) 가능성.", pat: "혈당 조절과 저혈당 방지에 주력합니다. 당뇨 합병증으로 인한 심장 및 위장관 위험을 대비합니다." },
+        { id: 'src_208', cat: 'endo', lvl: 'warn', label: '스테로이드 복용력', sub: 'Src 208-210', med: "스테로이드 장기 복용.\n[Stoelting] HPA Axis 억제 가능성. 부신 위기(Adrenal crisis) 예방 위해 Stress dose Hydrocortisone 투여.", pat: "장기간 스테로이드 복용으로 수술 스트레스 대처 능력이 떨어질 수 있어 호르몬 보충 주사를 투여합니다." },
+        { id: 'src_212', cat: 'endo', lvl: 'warn', label: '알도스테론증', sub: 'Src 212', med: "일차성 알도스테론증.\n고혈압 및 저칼륨혈증(Hypokalemia) 교정. Spironolactone 복용 확인.", pat: "고혈압과 전해질 불균형(저칼륨)을 교정하며 마취를 진행합니다." },
+        { id: 'src_213', cat: 'endo', lvl: 'crt', label: '부신 종양 (Incidentaloma)', sub: 'Src 213-214', med: "부신 종양 (갈색세포종 감별).\n[Stoelting] 기능성 종양일 경우 Phenoxybenzamine 전처치 필수. 수술 중 심한 고혈압/저혈압 위기 주의.", pat: "부신 종양의 호르몬 분비 가능성을 염두에 두고 혈압 급변에 대비한 정밀 감시를 시행합니다." },
+        { id: 'src_215', cat: 'endo', lvl: 'warn', label: '뇌하수체 선종', sub: 'Src 215', med: "뇌하수체 선종(Pituitary Adenoma).\n호르몬 상태(ACTH, TSH) 확인. 시야 결손(Visual field defect) 확인.", pat: "호르몬 불균형 여부를 확인하고 수술 전후 호르몬 수치를 모니터링합니다." },
+        { id: 'src_216', cat: 'endo', lvl: 'warn', label: '갑상선 질환', sub: 'Src 216-221', med: "갑상선 질환.\n[Stoelting] 정상 기능(Euthyroid) 상태 확인. 항진증: Thyroid Storm 주의. 저하증: 회복 지연 주의.", pat: "갑상선 수치가 정상인지 확인합니다. 수치 이상 시 갑상선 폭풍이나 회복 지연 위험이 있습니다." },
+
+        // --- Fever / Hematologic ---
+        { id: 'src_222', cat: 'infect', lvl: 'warn', label: '발열 (Fever)', sub: 'Src 222-225', med: "발열 원인 감별.\n[Stoelting] 대사량 항진(Hypermetabolic state). 산소 요구량 증가. 탈수 교정 필요.", pat: "발열 원인을 확인하고, 탈수 교정 및 체온 조절에 유의합니다. 감염 악화 가능성을 설명합니다." },
+        { id: 'src_226', cat: 'heme', lvl: 'warn', label: '빈혈 (Anemia)', sub: 'Src 226-227', med: "빈혈.\n[Stoelting] 수혈 기준(Transfusion trigger) 설정(Hb < 7-8 or 심장질환). 수혈 준비.", pat: "빈혈로 인한 산소 공급 저하를 막기 위해 필요시 수혈을 준비합니다." },
+        { id: 'src_228', cat: 'heme', lvl: 'warn', label: '응고장애 (PT 연장)', sub: 'Src 228-230', med: "응고장애(Coagulopathy).\n비타민 K 결핍 vs 간질환 감별. 척추마취 시 교정 필요(Correction).", pat: "지혈이 잘 안 될 수 있어 척추 마취 시 주의가 필요하며, 혈액 응고 인자를 보충할 수 있습니다." },
+        { id: 'src_231', cat: 'heme', lvl: 'warn', label: '다발성 골수종 (MM)', sub: 'Src 231-232', med: "다발성 골수종.\n신부전(Renal failure), 고칼슘혈증(Hypercalcemia), 병적 골절(Pathologic fracture) 주의(Positioning).", pat: "뼈가 약해 골절 위험이 있으므로 수술 자세를 잡을 때 각별히 주의합니다." },
+
+        // --- Rheumatologic ---
+        { id: 'src_233', cat: 'special', lvl: 'crt', label: '류마티스 관절염 (RA)', sub: 'Src 233, 236', med: "류마티스 관절염.\n[Stoelting] 경추(Atlanto-axial) 불안정성 확인. 턱관절(TMJ) 제한. 기도 삽관 곤란(Difficult Intubation) 대비.", pat: "목 관절 불안정성이 있을 수 있어, 목을 젖히지 않고 특수 장비로 기도 삽관을 시행합니다." },
+        { id: 'src_234', cat: 'special', lvl: 'warn', label: '루푸스 (SLE)', sub: 'Src 234-240', med: "전신홍반루푸스(SLE).\n다기관 침범(신장, 심장, 폐) 확인. 스테로이드 전처치(Coverage) 필요성 평가.", pat: "전신 염증 반응과 신장/심장 침범 가능성을 고려하여 마취 계획을 세웁니다." },
+        { id: 'src_242', cat: 'cardio', lvl: 'warn', label: '가와사키병 (Kawasaki)', sub: 'Src 242-243', med: "가와사키병 과거력.\n관상동맥류(Coronary aneurysm) 확인. 허혈성 심질환(IHD)에 준하여 관리.", pat: "심장 혈관 후유증 여부를 확인하고 성인 심장 질환에 준하여 관리합니다." },
+        
+        // --- Cancer / Neurologic ---
+        { id: 'src_244', cat: 'heme', lvl: 'warn', label: '항암/방사선 치료력', sub: 'Src 244-245', med: "항암/방사선 치료력.\n[Stoelting] Adriamycin(심독성), Bleomycin(폐독성). 골수 억제(Pancytopenia) 확인.", pat: "과거 항암 치료로 인한 심장/폐 기능 저하 및 면역력 저하 가능성을 평가합니다." },
+        { id: 'src_246', cat: 'neuro', lvl: 'warn', label: '뇌졸중 (Stroke/CVA)', sub: 'Src 246-249', med: "뇌졸중 과거력.\n[Stoelting] 뇌혈관 자동조절능(Autoregulation) 손상. 혈압을 기저치(Baseline)의 20% 내로 유지.", pat: "뇌혈관 자동 조절 능력이 떨어져 있을 수 있어, 혈압을 평소 수준으로 일정하게 유지합니다." },
+        { id: 'src_250', cat: 'neuro', lvl: 'crt', label: '중증근무력증 (MG)', sub: 'Src 250-253', med: "중증근무력증(MG).\n[Stoelting] 근이완제(NMB) 민감도 증가. 수술 후 인공호흡기 이탈(Weaning) 곤란 위험.", pat: "근육 이완제 사용을 최소화하며, 수술 후 자가 호흡 회복이 늦어질 수 있어 중환자실 치료를 대비합니다." },
+        { id: 'src_254', cat: 'neuro', lvl: 'warn', label: '흉선종 (Thymoma)', sub: 'Src 254-259', med: "흉선종.\n기도 압박(Airway compression) 확인. 근무력증(MG) 동반 여부 확인.", pat: "종양이 기도를 누르는지 확인하고 근무력증 동반 여부를 평가합니다." },
+
+        // --- Trauma / Orthopedic ---
+        { id: 'src_260', cat: 'special', lvl: 'crt', label: '안면 골절 (Facial Fx)', sub: 'Src 260-266', med: "안면 골절(Zygoma/Mandible Fx).\n[Stoelting] 기도 삽관 곤란. 개구 장애 시 Awake Fiberoptic Intubation 고려.", pat: "안면 골절로 입 벌리기가 힘들면 깨어있는 상태에서 특수 내시경으로 안전하게 기도 삽관을 합니다." },
+        { id: 'src_267', cat: 'neuro', lvl: 'crt', label: '경추 손상 (C-spine)', sub: 'Src 267-271', med: "경추 디스크/골절.\n목 신전(Neck extension) 금지. Videolaryngoscope 사용. 신경학적 모니터링.", pat: "목 신경 손상을 막기 위해 목을 움직이지 않고 특수 장비를 사용해 마취를 유도합니다." },
+        { id: 'src_272', cat: 'respi', lvl: 'warn', label: '척추측만증 (Scoliosis)', sub: 'Src 272-276', med: "척추측만증.\n제한성 폐질환(Restrictive Lung Disease). 폐기능검사(PFT) 확인. 폐심장증(Cor Pulmonale) 위험.", pat: "심한 측만증은 폐 기능을 떨어뜨릴 수 있어 수술 중 호흡 관리에 유의합니다." },
+
+        // --- Psych / Obesity / Special ---
+        { id: 'src_277', cat: 'neuro', lvl: 'warn', label: '우울증 (MDD)', sub: 'Src 277-280', med: "우울증.\n약물 상호작용(TCA/MAOi). 수술 후 섬망(Delirium) 위험.", pat: "복용 중인 정신과 약물을 고려하여 마취제를 선택하고 수술 후 섬망 발생을 주의 깊게 관찰합니다." },
+        { id: 'src_281', cat: 'special', lvl: 'warn', label: '고도 비만 (BMI>35)', sub: 'Src 281-284', med: "고도 비만.\n[Stoelting] 빠른 산소포화도 저하(FRC 감소). 기도 확보 곤란. 수면무호흡(OSA) 동반 가능성.", pat: "체중이 많이 나가시면 산소 수치가 빨리 떨어질 수 있어 산소 공급과 기도 확보에 만전을 기합니다." },
+        { id: 'src_285', cat: 'special', lvl: 'crt', label: '무수혈 (JW)', sub: 'Src 285-286', med: "여호와의 증인.\n[Legal] 수혈 거부 원칙 확인. ANH / Cell saver 가능 여부. 사망 위험 고지 및 동의서.", pat: "무수혈 원칙을 준수하되, 대량 출혈 시 생명 위험성을 고지하고 자가 수혈 등 대체 요법을 준비합니다." },
+        
+        // --- Emergency / OBGY ---
+        { id: 'src_288', cat: 'special', lvl: 'warn', label: '제왕절개 (C-sec)', sub: 'Src 288-290', med: "제왕절개.\n대동맥-대정맥 압박(Aortocaval compression). 흡인 위험. 척추마취(Neuraxial anesthesia) 선호.", pat: "임신부와 태아의 안전을 위해 척추 마취를 선호하며, 혈압 저하와 음식물 역류를 방지합니다." },
+        { id: 'src_291', cat: 'special', lvl: 'crt', label: '후두 미세 수술 (LMS)', sub: 'Src 291-293', med: "성대 폴립 수술(LMS).\n기도 공유(Shared Airway). 치아 손상 위험. 레이저 화재 위험 주의.", pat: "기도 안을 수술하므로 마취과와 집도의가 숨길을 공유합니다. 치아 보호와 레이저 화상 예방에 주의합니다." },
+        { id: 'src_298', cat: 'special', lvl: 'crt', label: '중환자실 재원 (ICU)', sub: 'Src 298-299', med: "ICU 재원 환자.\n인공호흡기 설정(Ventilator setting) 확인. 승압제(Inotropes) 유지.", pat: "중환자실 치료 연장선에서 호흡기와 승압제를 유지하며 안전하게 수술실로 이동 및 관리합니다." },
+        { id: 'src_300', cat: 'special', lvl: 'crt', label: '응급 수술 (Emergency)', sub: 'Src 300-304', med: "[Emergency] Full Stomach Risk.\nRSI(신속 마취 유도) 필수. 활력징후(V/S) 안정화 우선. 외상 평가.", pat: "응급 수술은 금식 시간이 부족하여 위 내용물 역류 위험이 큽니다. 신속 마취 유도법을 시행하여 폐를 보호합니다." }
+    ];
+
+    // ============================================================
+    // ENGINE CODE
+    // ============================================================
+    const cats = {
+        'all': '전체', 'cardio': '심장', 'respi': '호흡기', 'hepatic': '간/소화기',
+        'renal': '신장', 'endo': '내분비', 'neuro': '신경', 'heme': '혈액', 
+        'infect': '감염', 'special': '특수/응급'
+    };
+    
+    let curCat = 'all';
+    let selIds = new Set();
+
+    // Init Tabs
+    const tabBox = document.getElementById('tabs');
+    Object.keys(cats).forEach(k => {
+        const b = document.createElement('div');
+        b.className = `tab ${k==='all'?'active':''}`;
+        b.innerText = cats[k];
+        b.onclick = () => { curCat = k; render(); updateTabs(); };
+        tabBox.appendChild(b);
+    });
+
+    function updateTabs() {
+        Array.from(tabBox.children).forEach(c => {
+            c.classList.toggle('active', c.innerText === cats[curCat]);
+        });
+    }
+
+    function render() {
+        const listBox = document.getElementById('list');
+        const filtered = curCat === 'all' ? masterData : masterData.filter(d => d.cat === curCat);
+        
+        listBox.innerHTML = filtered.map(d => `
+            <div class="item ${selIds.has(d.id)?'selected':''}" onclick="toggle('${d.id}')">
+                <div class="item-head">
+                    <span class="item-title">${d.label}</span>
+                    <span class="tag ${d.lvl}">${d.lvl.toUpperCase()}</span>
+                </div>
+                <div class="item-sub">${d.sub}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggle(id) {
+        if(selIds.has(id)) selIds.delete(id); else selIds.add(id);
+        render();
+        print();
+    }
+
+    function print() {
+        const medBox = document.getElementById('outMed');
+        const patBox = document.getElementById('outPat');
+        
+        if(selIds.size === 0) {
+            medBox.innerHTML = '<div style="color:#9ca3af; text-align:center; padding-top:100px;">항목을 선택하세요.</div>';
+            patBox.innerHTML = '<div style="color:#9ca3af; text-align:center; padding-top:100px;">환자 설명이 생성됩니다.</div>';
+            return;
+        }
+
+        const items = masterData.filter(d => selIds.has(d.id));
+        
+        medBox.innerHTML = items.map(d => `
+            <div style="margin-bottom:15px;">
+                <strong>▶ ${d.label}</strong>
+                <div style="margin-top:4px; padding-left:10px; border-left:3px solid #d1d5db;">${d.med.replace(/\n/g, '<br>')}</div>
+            </div>`).join('');
+            
+        patBox.innerHTML = items.map(d => `
+            <div style="margin-bottom:15px;">
+                <strong>✅ ${d.label}</strong>
+                <div style="margin-top:4px;">${d.pat}</div>
+            </div>`).join('');
+    }
+
+    function copyResult() {
+        if(selIds.size === 0) return alert('선택된 항목이 없습니다.');
+        const items = masterData.filter(d => selIds.has(d.id));
+        const txt = items.map(d => `[${d.label}]\n${d.med}`).join('\n\n');
+        navigator.clipboard.writeText(txt).then(() => alert('EMR 기록 복사 완료'));
+    }
+
+    // Start
+    render();
+</script>
+</body>
+</html>
